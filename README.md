@@ -29,3 +29,67 @@
 2. Файл docker-compose.yml с установкой PostgreSQL и заполненными данными из файлов mock_data(*).csv.
 3. Скрипты DDL (SQL) создания таблиц фактов и измерений в соответствии с моделью снежинка/звезда.
 4. Скрипты DML (SQL) заполнения таблиц фактов и измерений из исходных данных.
+
+---
+
+## Выполнение (этот репозиторий)
+
+### Структура
+
+| Путь | Назначение |
+|------|------------|
+| `исходные данные/` | 10 CSV (`MOCK_DATA.csv` … `MOCK_DATA (9).csv`) |
+| `docker-compose.yml` | PostgreSQL 16 + автозагрузка при первом старте |
+| `init/` | Скрипты для Docker (`01`…`05`) |
+| `sql/` | Те же DDL/DML для ручного запуска в DBeaver |
+
+### Модель «снежинка»
+
+- **Факт:** `fact_sales` (дата, количество, сумма продажи).
+- **Измерения:** покупатель, продавец, товар, магазин, поставщик, питомец.
+- **Нормализация (ветки снежинки):**
+  - `dim_country` — общая география для клиента, продавца, магазина, поставщика;
+  - `dim_pet_category` → `dim_pet` → `dim_customer`;
+  - `dim_product_category` → `dim_product`.
+
+### Запуск через Docker
+
+Требуются права администратора (UAC). Один раз:
+
+```powershell
+# ПКМ → «Запуск от имени администратора»
+c:\BigData\install-docker-admin.ps1
+```
+
+После установки и запуска Docker Desktop:
+
+```bash
+cd c:\BigData
+docker compose up -d
+```
+
+### Запуск без Docker (уже настроено)
+
+Portable PostgreSQL в `tools/pgsql`:
+
+```powershell
+c:\BigData\start-postgres.ps1
+```
+
+Подключение: `localhost:5432`, БД `bigdata_lab`, пользователь/пароль `postgres` / `postgres`.
+
+Проверка:
+
+```sql
+SELECT COUNT(*) FROM mock_data;   -- ожидается 10000
+SELECT COUNT(*) FROM fact_sales;  -- должно совпадать с mock_data
+```
+
+Остановка: `docker compose down`. Полный сброс данных: `docker compose down -v`.
+
+### Ручной запуск (DBeaver)
+
+1. Импорт CSV в `mock_data` (см. `init/01_mock_data_ddl.sql`).
+2. `sql/01_DDL.sql` — создание измерений и факта.
+3. `sql/02_DML.sql` — заполнение из `mock_data`.
+4. `sql/03_analysis_examples.sql` — примеры анализа.
