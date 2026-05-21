@@ -89,6 +89,8 @@ SELECT COUNT(*) FROM fact_sales;  -- должно совпадать с mock_dat
 
 ### Ручной запуск (DBeaver)
 
+Загрузка CSV на Windows (не в Docker init): `sql/02_load_csv_win.sql`.
+
 1. Импорт CSV в `mock_data` (см. `init/01_mock_data_ddl.sql`).
 2. `sql/01_DDL.sql` — создание измерений и факта.
 3. `sql/02_DML.sql` — заполнение из `mock_data`.
